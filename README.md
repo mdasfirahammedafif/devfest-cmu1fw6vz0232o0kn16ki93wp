@@ -8,10 +8,10 @@
 
 ## 📌 Deliverable Information
 
-- **Full Name**: Md Asfir Ahammed Afif
+- **Participant Name**: Md Asfir Ahammed Afif
 - **Registration Number**: `cmu1fw6vz0232o0kn16ki93wp`
 - **GitHub Repository**: [https://github.com/mdasfirahammedafif/devfest-cmu1fw6vz0232o0kn16ki93wp](https://github.com/mdasfirahammedafif/devfest-cmu1fw6vz0232o0kn16ki93wp)
-- **Live Website**: [https://mdasfirahammedafif.github.io/devfest-cmu1fw6vz0232o0kn16ki93wp/](https://mdasfirahammedafif.github.io/devfest-cmu1fw6vz0232o0kn16ki93wp/)
+- **Live Website Demo**: [https://mdasfirahammedafif.github.io/devfest-cmu1fw6vz0232o0kn16ki93wp/](https://mdasfirahammedafif.github.io/devfest-cmu1fw6vz0232o0kn16ki93wp/)
 - **License**: [MIT License](LICENSE)
 
 ---
@@ -186,5 +186,3 @@ The optimized static bundle is generated in the `dist/` folder, ready for deploy
 ## ⚖️ License
 
 Distributed under the [MIT License](LICENSE).
-#   d e v f e s t - c m u 1 f w 6 v z 0 2 3 2 o 0 k n 1 6 k i 9 3 w p  
- 

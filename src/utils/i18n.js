@@ -29,6 +29,14 @@ export const translations = {
     soundOff: 'Audio Effects: MUTED',
     exportPng: 'Export Map PNG',
 
+    // Presets
+    presetsLabel: 'Official Scenarios',
+    presetBaseline: '1. Baseline (R1 → E1)',
+    presetBlockedC2: '2. Block C2 (R1 → E2)',
+    presetExitsClosed: '3. Exits Closed',
+    presetStartR2: '4. Start R2 (R2 → E2)',
+    presetStartBlocked: '5. Blocked Start',
+
     // Building Info
     buildingLabel: 'Building Name',
     activeHazards: 'Active Hazards',
@@ -147,6 +155,14 @@ export const translations = {
     soundOn: 'শব্দ সংকেত: চালু',
     soundOff: 'শব্দ সংকেত: নিঃশব্দ',
     exportPng: 'ম্যাপ পিএনজি ডাউনলোড',
+
+    // Presets
+    presetsLabel: 'অফিসিয়াল টেস্ট কেস',
+    presetBaseline: '১. বেসলাইন (R1 → E1)',
+    presetBlockedC2: '২. C2 অবরুদ্ধ (R1 → E2)',
+    presetExitsClosed: '৩. প্রস্থান বন্ধ',
+    presetStartR2: '৪. R2 থেকে শুরু (R2 → E2)',
+    presetStartBlocked: '৫. শুরুর নোড অবরুদ্ধ',
 
     // Building Info
     buildingLabel: 'ভবনের নাম',

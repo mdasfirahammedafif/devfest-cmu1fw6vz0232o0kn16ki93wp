@@ -177,6 +177,20 @@ function renderHeader() {
   if (exportBtn) {
     exportBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> ${t('exportPng')}`;
   }
+
+  // Update Presets Bar labels
+  const presetsLabel = document.getElementById('presets-label');
+  if (presetsLabel) presetsLabel.textContent = t('presetsLabel');
+  const p1 = document.getElementById('preset-baseline');
+  if (p1) p1.textContent = t('presetBaseline');
+  const p2 = document.getElementById('preset-blocked-c2');
+  if (p2) p2.textContent = t('presetBlockedC2');
+  const p3 = document.getElementById('preset-exits-closed');
+  if (p3) p3.textContent = t('presetExitsClosed');
+  const p4 = document.getElementById('preset-start-r2');
+  if (p4) p4.textContent = t('presetStartR2');
+  const p5 = document.getElementById('preset-start-blocked');
+  if (p5) p5.textContent = t('presetStartBlocked');
 }
 
 function renderSubToolbar() {
@@ -620,9 +634,9 @@ function renderSvgMap() {
 
     edgesHtml += `
       <g class="edge-group" data-edge-id="${edge.id}">
-        <line class="${edgeClass}" x1="${u.x}" y1="${u.y}" x2="${v.x}" y2="${v.y}" onclick="window.toggleEdgeBlocked('${edge.id}')" />
+        <line class="${edgeClass}" x1="${u.x}" y1="${u.y}" x2="${v.x}" y2="${v.y}" onclick="window.toggleEdgeBlocked('${edge.id}')" onmouseenter="window.showEdgeInspector('${edge.id}')" onmouseleave="window.hideInspector()" />
         ${isActive && !isBlocked ? `<line class="edge-flow-dash" x1="${u.x}" y1="${u.y}" x2="${v.x}" y2="${v.y}" />` : ''}
-        <g class="edge-cost-pill ${isBlocked ? 'blocked' : ''} ${isActive ? 'active-route' : ''}" transform="translate(${midX}, ${midY})" onclick="window.toggleEdgeBlocked('${edge.id}')">
+        <g class="edge-cost-pill ${isBlocked ? 'blocked' : ''} ${isActive ? 'active-route' : ''}" transform="translate(${midX}, ${midY})" onclick="window.toggleEdgeBlocked('${edge.id}')" onmouseenter="window.showEdgeInspector('${edge.id}')" onmouseleave="window.hideInspector()">
           <rect class="edge-cost-bg" x="-14" y="-9" width="28" height="18" />
           <text class="edge-cost-text">${edge.cost}</text>
         </g>
@@ -646,13 +660,10 @@ function renderSvgMap() {
     // Different geometry shapes for distinct node types
     let shapeSvg = '';
     if (node.type === 'room') {
-      // Rounded square
       shapeSvg = `<rect class="node-shape" x="${node.x - 22}" y="${node.y - 22}" width="44" height="44" rx="8" ry="8" />`;
     } else if (node.type === 'junction') {
-      // Hexagonal / Circle hub
       shapeSvg = `<circle class="node-shape" cx="${node.x}" cy="${node.y}" r="20" />`;
     } else if (node.type === 'exit') {
-      // Rounded pill / Exit sign
       shapeSvg = `<rect class="node-shape" x="${node.x - 26}" y="${node.y - 18}" width="52" height="36" rx="10" ry="10" />`;
     }
 
@@ -671,7 +682,7 @@ function renderSvgMap() {
     }
 
     nodesHtml += `
-      <g class="${nodeClass}" data-node-id="${node.id}" onclick="window.handleNodeClick('${node.id}', '${node.type}')">
+      <g class="${nodeClass}" data-node-id="${node.id}" onclick="window.handleNodeClick('${node.id}', '${node.type}')" onmouseenter="window.showNodeInspector('${node.id}')" onmouseleave="window.hideInspector()">
         ${isStart ? `<circle class="start-pulse-ring" cx="${node.x}" cy="${node.y}" />` : ''}
         ${shapeSvg}
         ${hazardSymbol}
@@ -772,6 +783,170 @@ window.setHazardTab = (tab) => {
   state.activeTab = tab;
   renderHazardPanel();
 };
+
+// Map Inspector Tooltip logic
+window.showNodeInspector = (nodeId) => {
+  const pill = document.getElementById('map-inspector-pill');
+  const titleEl = document.getElementById('inspector-title');
+  const descEl = document.getElementById('inspector-desc');
+  const iconEl = document.getElementById('inspector-icon');
+  if (!pill || !titleEl || !descEl || !iconEl) return;
+
+  const node = state.buildingData.nodes?.find(n => n.id === nodeId);
+  if (!node) return;
+
+  const isBlocked = state.blockedNodes.has(node.id);
+  const isClosed = node.type === 'exit' && state.closedExits.has(node.id);
+  const isStart = state.startNodeId === node.id;
+  const isOnRoute = currentRoute.path.includes(node.id);
+
+  let icon = '📍';
+  let statusText = 'Clear';
+  if (isBlocked) { icon = '🔥'; statusText = 'Blocked / Hazard'; }
+  else if (isClosed) { icon = '🚫'; statusText = 'Closed Exit'; }
+  else if (isStart) { icon = '🎯'; statusText = 'Selected Start'; }
+  else if (isOnRoute) { icon = '🛡️'; statusText = 'Evacuation Route'; }
+
+  iconEl.textContent = icon;
+  titleEl.textContent = `${node.label} (${node.id})`;
+  descEl.textContent = `Type: ${node.type.toUpperCase()} • Pos: (${node.x}, ${node.y}) • Status: ${statusText}`;
+  pill.classList.add('visible');
+};
+
+window.showEdgeInspector = (edgeId) => {
+  const pill = document.getElementById('map-inspector-pill');
+  const titleEl = document.getElementById('inspector-title');
+  const descEl = document.getElementById('inspector-desc');
+  const iconEl = document.getElementById('inspector-icon');
+  if (!pill || !titleEl || !descEl || !iconEl) return;
+
+  const edge = state.buildingData.edges?.find(e => e.id === edgeId);
+  if (!edge) return;
+
+  const isBlocked = state.blockedEdges.has(edge.id);
+  const isActive = (currentRoute.edgeIds || []).includes(edge.id);
+
+  iconEl.textContent = isBlocked ? '⚠️' : (isActive ? '⚡' : '🛣️');
+  titleEl.textContent = `Corridor ${edge.id}`;
+  descEl.textContent = `Connects: ${edge.from} ↔ ${edge.to} • Cost: ${edge.cost} • Status: ${isBlocked ? 'BLOCKED' : (isActive ? 'ACTIVE ROUTE' : 'OPEN')}`;
+  pill.classList.add('visible');
+};
+
+window.hideInspector = () => {
+  const pill = document.getElementById('map-inspector-pill');
+  if (pill) pill.classList.remove('visible');
+};
+
+// Scenario Presets Switcher
+function setupPresetsBar() {
+  const presets = [
+    {
+      id: 'preset-baseline',
+      apply: () => {
+        state.startNodeId = 'R1';
+        state.blockedNodes.clear();
+        state.blockedEdges.clear();
+        state.closedExits.clear();
+      }
+    },
+    {
+      id: 'preset-blocked-c2',
+      apply: () => {
+        state.startNodeId = 'R1';
+        state.blockedNodes.clear();
+        state.blockedEdges.clear();
+        state.closedExits.clear();
+        state.blockedNodes.add('C2');
+      }
+    },
+    {
+      id: 'preset-exits-closed',
+      apply: () => {
+        state.startNodeId = 'R1';
+        state.blockedNodes.clear();
+        state.blockedEdges.clear();
+        state.closedExits.clear();
+        state.closedExits.add('E1');
+        state.closedExits.add('E2');
+      }
+    },
+    {
+      id: 'preset-start-r2',
+      apply: () => {
+        state.startNodeId = 'R2';
+        state.blockedNodes.clear();
+        state.blockedEdges.clear();
+        state.closedExits.clear();
+      }
+    },
+    {
+      id: 'preset-start-blocked',
+      apply: () => {
+        state.startNodeId = 'R1';
+        state.blockedNodes.clear();
+        state.blockedEdges.clear();
+        state.closedExits.clear();
+        state.blockedNodes.add('R1');
+      }
+    }
+  ];
+
+  presets.forEach(p => {
+    const btn = document.getElementById(p.id);
+    if (!btn) return;
+    btn.onclick = () => {
+      playClickSound();
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      p.apply();
+      renderApp();
+    };
+  });
+}
+
+// Global Keyboard Shortcuts
+function setupKeyboardShortcuts() {
+  window.addEventListener('keydown', (e) => {
+    // Avoid triggering when user is typing in search input
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+
+    if (e.code === 'KeyR') {
+      // Reset initial state
+      playClickSound();
+      applyInitialState();
+      renderApp();
+    } else if (e.code === 'KeyH') {
+      // Toggle high contrast
+      playClickSound();
+      state.highContrast = !state.highContrast;
+      localStorage.setItem('smart_escape_contrast', String(state.highContrast));
+      if (state.highContrast) document.body.classList.add('high-contrast');
+      else document.body.classList.remove('high-contrast');
+      renderHeader();
+    } else if (e.code === 'KeyL') {
+      // Toggle language
+      playClickSound();
+      state.lang = state.lang === 'en' ? 'bn' : 'en';
+      localStorage.setItem('smart_escape_lang', state.lang);
+      document.body.setAttribute('lang', state.lang);
+      renderApp();
+    } else if (e.code === 'KeyM') {
+      // Toggle audio mute
+      state.soundMuted = !state.soundMuted;
+      localStorage.setItem('smart_escape_mute', String(state.soundMuted));
+      setMuted(state.soundMuted);
+      playClickSound();
+      renderHeader();
+    } else if (e.code === 'Space') {
+      // Toggle walkthrough
+      e.preventDefault();
+      if (currentRoute.status === 'ROUTE_FOUND' && currentRoute.path.length > 0) {
+        if (state.walkthrough.running) pauseWalkthrough();
+        else startWalkthrough();
+      }
+    }
+  });
+}
 
 // Setup Zoom & Pan for SVG Canvas
 function setupPanZoom() {
@@ -1067,6 +1242,8 @@ function init() {
     setupPanZoom();
     setupImportModal();
     setupHeaderActions();
+    setupPresetsBar();
+    setupKeyboardShortcuts();
     setupSampleChecksModal();
     renderApp();
   } catch (err) {

@@ -15,6 +15,10 @@ dist
 dist-ssr
 *.local
 
+# Raw input archives
+Smart_Escape_Participant_Input*
+*.zip
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
